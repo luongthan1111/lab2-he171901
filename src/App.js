@@ -13,15 +13,19 @@ function AppContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('All');
   const [sortBy, setSortBy] = useState('default');
-  const [favorites, setFavorites] = useState([]);
-  const [selectedMovie, setSelectedMovie] = useState(null);
-
-  useEffect(() => {
+  const [favorites, setFavorites] = useState(() => {
     const savedFavorites = localStorage.getItem('movie_favorites');
     if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites));
+      try {
+        return JSON.parse(savedFavorites);
+      } catch (error) {
+        console.error('Error parsing favorites from localStorage:', error);
+        return [];
+      }
     }
-  }, []);
+    return [];
+  });
+  const [selectedMovie, setSelectedMovie] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('movie_favorites', JSON.stringify(favorites));
@@ -100,21 +104,23 @@ function AppContent() {
         <span>Đang hiển thị: {filteredAndSortedMovies.length}</span>
       </div>
 
-      {selectedMovie ? (
-        <MovieDetail
-          movie={selectedMovie}
-          onBack={() => setSelectedMovie(null)}
-          isFavorite={favorites.includes(selectedMovie.id)}
-          onToggleFavorite={() => toggleFavorite(selectedMovie.id)}
-        />
-      ) : (
+      <div className="content-container">
         <MovieList
           movies={filteredAndSortedMovies}
           favorites={favorites}
           onToggleFavorite={toggleFavorite}
           onViewDetails={setSelectedMovie}
         />
-      )}
+
+        {selectedMovie && (
+          <MovieDetail
+            movie={selectedMovie}
+            onBack={() => setSelectedMovie(null)}
+            isFavorite={favorites.includes(selectedMovie.id)}
+            onToggleFavorite={() => toggleFavorite(selectedMovie.id)}
+          />
+        )}
+      </div>
     </div>
   );
 }
